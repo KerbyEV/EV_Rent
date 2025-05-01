@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EV Rent</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: Tahoma, sans-serif;
+      background: #e6f4fb;
+      color: #222;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: #b8e1fc;
+      position: relative;
+      z-index: 10;
+    }
+    .logo {
+      width: 44px;
+      height: 44px;
+      background: url('pictures/logo.png') no-repeat center/contain;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .title {
+      flex: 1 1 auto;
+      text-align: center;
+      font-size: 1.7em;
+      font-weight: bold;
+      color: #0a3d62;
+      letter-spacing: 2px;
+    }
+    .menu-container {
+      position: relative;
+      z-index: 1002;
+    }
+    .menu-button {
+      background: none;
+      border: none;
+      font-size: 32px;
+      color: #0a3d62;
+      cursor: pointer;
+      padding: 5px;
+      margin-left: 8px;
+      z-index: 1002;
+    }
+    /* Контекстное меню */
+    .menu-dropdown {
+      display: none;
+      position: fixed;
+      top: 0; right: 0;
+      background: #e6f4fb;
+      color: #0a3d62;
+      z-index: 1001;
+      box-shadow: -2px 0 24px rgba(0,0,0,0.08);
+      padding: 0;
+      transition: all 0.2s;
+      overflow-y: auto;
+    }
+    .menu-dropdown.active {
+      display: block;
+    }
+    .menu-dropdown .menu-title {
+      font-size: 1.5em;
+      font-weight: bold;
+      margin: 0;
+      padding: 24px 24px 12px 24px;
+      border-bottom: 1px solid #b8e1fc;
+      background: #b8e1fc;
+      letter-spacing: 2px;
+    }
+    .menu-dropdown ul {
+      list-style: none;
+      padding: 0 24px;
+      margin: 0;
+    }
+    .menu-dropdown li {
+      margin: 24px 0;
+    }
+    .menu-dropdown a {
+      color: #0a3d62;
+      text-decoration: none;
+      font-size: 1.2em;
+      display: block;
+      padding: 4px 0;
+    }
+    /* Меню: мобильная версия - на весь экран */
+    @media (max-width: 767px) {
+      .menu-dropdown {
+        width: 100vw;
+        height: 100vh;
+        left: 0;
+        border-radius: 0;
+      }
+    }
+    /* Меню: десктопная версия - правая верхняя четверть */
+    @media (min-width: 768px) {
+      .menu-dropdown {
+        width: 50vw;
+        height: 50vh;
+        top: 0;
+        right: 0;
+        border-bottom-left-radius: 24px;
+      }
+    }
+    /* Контейнер рекламы (только десктоп) */
+    .ads-container {
+      display: block;
+      background: #d6eaf8;
+      padding: 16px;
+      margin: 24px auto 0 auto;
+      max-width: 600px;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 1.1em;
+      color: #0a3d62;
+    }
+    @media (max-width: 767px) {
+      .ads-container {
+        display: none;
+      }
+    }
+    /* Основной контент */
+    main {
+      flex: 1 0 auto;
+      max-width: 700px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 0 8px 24px 8px;
+      box-sizing: border-box;
+    }
+    .company-description {
+      margin: 24px auto 16px auto;
+      background: #d6eaf8;
+      border-radius: 12px;
+      padding: 18px 16px;
+      text-align: center;
+      font-size: 1.1em;
+      color: #0a3d62;
+      max-width: 600px;
+    }
+    /* Слайдер */
+    .slider {
+      position: relative;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      margin: 0 auto 24px auto;
+      max-width: 600px;
+      overflow: hidden;
+      height: 270px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .slides {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      transition: transform 0.4s cubic-bezier(.77,0,.18,1);
+      user-select: none;
+    }
+    .slide {
+      flex: 0 0 60%;
+      margin: 0 2%;
+      opacity: 0.4;
+      filter: brightness(0.8) grayscale(0.2);
+      transition: opacity 0.3s, filter 0.3s, transform 0.3s, z-index 0.3s;
+      position: relative;
+      z-index: 1;
+      box-sizing: border-box;
+      pointer-events: none;
+      background: transparent;
+      height: 220px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .slide.active {
+      opacity: 1;
+      filter: brightness(1) grayscale(0);
+      z-index: 2;
+      transform: scale(1.08);
+      pointer-events: auto;
+    }
+    .slide img {
+      width: 100%;
+      height: 210px;
+      object-fit: contain;
+      border-radius: 14px;
+      background: #e6f4fb;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      display: block;
+    }
+    /* Штамп */
+    .stamp {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      background: linear-gradient(135deg, #b8e1fc 60%, #fff 100%);
+      color: #0a3d62;
+      font-weight: bold;
+      font-size: 1.05em;
+      padding: 6px 18px 6px 12px;
+      border-radius: 12px 0 12px 12px;
+      box-shadow: 1px 2px 8px rgba(0,0,0,0.09);
+      transform: skew(-18deg, -8deg) rotate(-8deg);
+      opacity: 0.85;
+      pointer-events: none;
+      user-select: none;
+    }
+    .stamp.free { background: linear-gradient(135deg, #c7f7c7 60%, #fff 100%); color: #227a1f;}
+    .stamp.busy { background: linear-gradient(135deg, #f7c7c7 60%, #fff 100%); color: #a11b1b;}
+    .stamp.onway { background: linear-gradient(135deg, #f7eac7 60%, #fff 100%); color: #a17a1b;}
+    /* Слайдер управление (скрыто) */
+    .slider-controls { display: none; }
+    /* Блок заказа */
+    .order-block {
+      background: #d6eaf8;
+      border-radius: 14px;
+      padding: 20px 16px;
+      margin: 24px auto 16px auto;
+      max-width: 500px;
+      box-sizing: border-box;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .order-block label {
+      display: block;
+      margin: 10px 0 4px 0;
+      font-weight: bold;
+      color: #0a3d62;
+    }
+    .order-block input[type="text"],
+    .order-block input[type="tel"],
+    .order-block select {
+      width: 100%;
+      padding: 7px 10px;
+      border-radius: 6px;
+      border: 1px solid #b8e1fc;
+      font-size: 1em;
+      margin-bottom: 8px;
+      font-family: Tahoma, sans-serif;
+      background: #f4fbff;
+      box-sizing: border-box;
+    }
+    .order-block .calendar-popup {
+      position: absolute;
+      background: #fff;
+      border: 1px solid #b8e1fc;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.09);
+      z-index: 30;
+      padding: 10px;
+      margin-top: 2px;
+    }
+    .order-block .calendar-popup table {
+      border-collapse: collapse;
+      width: 100%;
+      background: #fff;
+    }
+    .order-block .calendar-popup th,
+    .order-block .calendar-popup td {
+      width: 14.2%;
+      text-align: center;
+      padding: 4px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 0.98em;
+    }
+    .order-block .calendar-popup td.today {
+      background: #b8e1fc;
+      color: #0a3d62;
+      font-weight: bold;
+    }
+    .order-block .calendar-popup td.selected {
+      background: #0a3d62;
+      color: #fff;
+      font-weight: bold;
+    }
+    .order-block .calendar-popup td.reserved {
+      background: #e2e2e2;
+      color: #aaa;
+      font-weight: normal;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .order-block .calendar-popup td:hover:not(.reserved):not(.selected) {
+      background: #d6eaf8;
+    }
+    .order-block .calendar-popup th {
+      color: #0a3d62;
+      font-weight: bold;
+      background: #e6f4fb;
+    }
+    .order-block .calendar-popup caption {
+      margin-bottom: 4px;
+      font-weight: bold;
+      color: #0a3d62;
+      font-size: 1em;
+    }
+    .order-block .calendar-popup .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2px;
+    }
+    .order-block .calendar-popup .calendar-header button {
+      background: #b8e1fc;
+      border: none;
+      border-radius: 4px;
+      color: #0a3d62;
+      font-size: 1.1em;
+      padding: 2px 8px;
+      cursor: pointer;
+    }
+    .order-block .calendar-popup .calendar-header span {
+      font-weight: bold;
+    }
+    .order-block .inline-radio {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+    .order-block .inline-radio label {
+      font-weight: normal;
+      margin: 0 0 0 4px;
+      color: #0a3d62;
+      font-size: 1em;
+    }
+    .order-block .order-summary {
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin: 14px 0 10px 0;
+      font-size: 1.1em;
+      color: #0a3d62;
+      min-height: 24px;
+      border: 1px solid #b8e1fc;
+    }
+    .order-block .order-button {
+      width: 100%;
+      padding: 10px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.2em;
+      font-weight: bold;
+      background: #b8e1fc;
+      color: #0a3d62;
+      cursor: pointer;
+      margin-top: 10px;
+      opacity: 0.7;
+      transition: background 0.2s, color 0.2s, opacity 0.2s;
+      font-family: Tahoma, sans-serif;
+    }
+    .order-block .order-button.active {
+      background: #0a3d62;
+      color: #fff;
+      opacity: 1;
+    }
+    /* Баннер */
+    .banner {
+      margin: 24px auto 0 auto;
+      background: #b8e1fc;
+      color: #0a3d62;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      font-size: 1.1em;
+      max-width: 600px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    /* Footer */
+    footer {
+      background: #b8e1fc;
+      color: #0a3d62;
+      padding: 18px 10px 12px 10px;
+      text-align: center;
+      font-size: 1.05em;
+      border-top: 1px solid #d6eaf8;
+      margin-top: 24px;
+    }
+    .footer-powered {
+      font-family: Tahoma, sans-serif;
+      font-size: 1em;
+      margin-top: 10px;
+    }
+    .footer-chalk {
+      font-family: Chalkduster, fantasy, cursive;
+      font-size: 1.1em;
+      letter-spacing: 2px;
+    }
+    @media (max-width: 600px) {
+      .slider { height: 180px; }
+      .slide img { height: 120px; }
+      .company-description, .banner, .ads-container, .order-block { max-width: 98vw; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo" aria-label="Логотип компании"></div>
+    <div class="title">EV Rent</div>
+    <div class="menu-container">
+      <button class="menu-button" aria-label="Открыть меню" tabindex="0">&#9776;</button>
+      <nav class="menu-dropdown" id="menuDropdown" aria-hidden="true">
+        <div class="menu-title">Меню</div>
+        <ul>
+          <li><a href="#">Главная</a></li>
+          <li><a href="#">О нас</a></li>
+          <li><a href="#">Автопарк</a></li>
+          <li><a href="#">Контакты</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="ads-container">
+    <strong>Реклама:</strong> Лучшие предложения на электромобили! <br>
+    <a href="https://t.me/@EgorVL1" target="_blank" style="color:#0a3d62;text-decoration:underline;">Связаться для рекламы</a>
+  </div>
+
+  <main>
+    <div class="company-description">
+      EV Rent - ваш надежный партнер в мире электромобилей. Арендуйте Nissan Ariya разного цвета с водителем или без, на выгодных условиях!
+    </div>
+    <section class="slider" aria-label="Галерея изображений">
+      <div class="slides">
+        <div class="slide" data-stamp="free">
+          <img src="pictures/Ariya_Gray.png" alt="Nissan Ariya серая" draggable="false" />
+          <div class="stamp free">Свободно</div>
+        </div>
+        <div class="slide" data-stamp="busy">
+          <img src="pictures/Ariya_Black.png" alt="Nissan Ariya черная" draggable="false" />
+          <div class="stamp busy">Занято</div>
+        </div>
+        <div class="slide" data-stamp="onway">
+          <img src="pictures/Ariya_Blue.png" alt="Nissan Ariya синяя" draggable="false" />
+          <div class="stamp onway">В пути</div>
+        </div>
+      </div>
+    </section>
+
+    <form class="order-block" id="orderForm" autocomplete="off">
+      <label for="dateStart">Дата начала аренды</label>
+      <input type="text" id="dateStart" name="dateStart" readonly placeholder="Выберите дату" />
+      <div id="calendarStart" class="calendar-popup" style="display:none;"></div>
+
+      <label for="dateEnd">Дата конца аренды</label>
+      <input type="text" id="dateEnd" name="dateEnd" readonly placeholder="Выберите дату" />
+      <div id="calendarEnd" class="calendar-popup" style="display:none;"></div>
+
+      <label for="mileage">Разрешенный пробег (за неделю)</label>
+      <select id="mileage" name="mileage">
+        <option value="50">50 км</option>
+        <option value="100">100 км</option>
+        <option value="200">200 км</option>
+        <option value="400">400 км</option>
+        <option value="600">600 км</option>
+        <option value="800">800 км</option>
+        <option value="unlim">Безлимит</option>
+      </select>
+      <div style="font-size:0.95em;color:#555;margin-bottom:10px;">* За неделю использования</div>
+
+      <label>Необходимость личного водителя</label>
+      <div class="inline-radio">
+        <input type="radio" id="driverNo" name="driver" value="Нет" checked>
+        <label for="driverNo">Нет</label>
+        <input type="radio" id="driverYes" name="driver" value="Да">
+        <label for="driverYes">Да</label>
+      </div>
+
+      <label for="car">Автомобиль</label>
+      <select id="car" name="car">
+        <option value="Nissan Ariya серая">Nissan Ariya серая</option>
+        <option value="Nissan Ariya черная">Nissan Ariya черная</option>
+        <option value="Nissan Ariya синяя">Nissan Ariya синяя</option>
+      </select>
+
+      <label>Предпочтительная обратная связь</label>
+      <select id="contactType" name="contactType">
+        <option value="phone">Телефон</option>
+        <option value="whatsapp">WhatsApp</option>
+        <option value="telegram">Telegram</option>
+      </select>
+      <input type="text" id="contactValue" name="contactValue" placeholder="Введите контакт..." />
+
+      <div class="order-summary" id="orderSummary">Стоимость: -</div>
+      <button type="submit" class="order-button" id="orderButton" disabled>Заказать</button>
+    </form>
+
+    <div class="banner">
+      Для почасовой и долгосрочной аренды обращайтесь: <a href="https://t.me/@EgorVL1" target="_blank" style="color:#0a3d62;text-decoration:underline;">https://t.me/@EgorVL1</a>
+    </div>
+  </main>
+
+  <footer>
+    Хотите узнать больше? <a href="https://t.me/EVatFarEast" target="_blank" style="color:#0a3d62;text-decoration:underline;">Телеграм канал</a><br/>
+    <span class="footer-powered">Powered by <span class="footer-chalk">Long.142E</span></span><br/>
+    Current date: Friday, May 02, 2025, 12:45 AM +10
+  </footer>
+
+  <script>
+    // --- Контекстное меню ---
+    const menuBtn = document.querySelector('.menu-button');
+    const menuDropdown = document.getElementById('menuDropdown');
+    menuBtn.addEventListener('click', () => {
+      const isActive = menuDropdown.classList.toggle('active');
+      menuDropdown.setAttribute('aria-hidden', !isActive);
+      if (isActive) document.body.style.overflow = 'hidden';
+      else document.body.style.overflow = '';
+    });
+    document.addEventListener('click', function(e) {
+      if (!menuDropdown.contains(e.target) && !menuBtn.contains(e.target)) {
+        menuDropdown.classList.remove('active');
+        menuDropdown.setAttribute('aria-hidden', true);
+        document.body.style.overflow = '';
+      }
+    });
+
+    // --- Слайдер с автопрокруткой и свайпом ---
+    const slidesContainer = document.querySelector('.slides');
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    let currentIndex = 0, autoScrollInterval, startX = 0, isDragging = false, prevTranslate = 0, currentTranslate = 0, animationID = 0;
+
+    function updateSlides() {
+      slides.forEach((slide, i) => {
+        slide.classList.toggle('active', i === currentIndex);
+      });
+      // Сдвиг для отображения центрального слайда
+      const slideWidth = slides[0].offsetWidth + parseFloat(getComputedStyle(slides[0]).marginLeft) + parseFloat(getComputedStyle(slides[0]).marginRight);
+      const containerWidth = slidesContainer.offsetWidth;
+      const offset = (slideWidth * currentIndex) - (containerWidth - slideWidth) / 2;
+      slidesContainer.style.transform = `translateX(${-offset}px)`;
+    }
+    function nextSlide() {
+      currentIndex = (currentIndex + 1) % slides.length;
+      updateSlides();
+    }
+    function prevSlide() {
+      currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+      updateSlides();
+    }
+    function startAutoScroll() {
+      stopAutoScroll();
+      autoScrollInterval = setInterval(nextSlide, 3000);
+    }
+    function stopAutoScroll() {
+      if (autoScrollInterval) clearInterval(autoScrollInterval);
+    }
+    slidesContainer.addEventListener('touchstart', swipeStart, {passive:true});
+    slidesContainer.addEventListener('mousedown', swipeStart);
+    function swipeStart(e) {
+      stopAutoScroll();
+      isDragging = true;
+      startX = e.touches ? e.touches[0].clientX : e.clientX;
+      prevTranslate = 0;
+      document.addEventListener('touchmove', swipeMove, {passive:false});
+      document.addEventListener('mousemove', swipeMove);
+      document.addEventListener('touchend', swipeEnd);
+      document.addEventListener('mouseup', swipeEnd);
+    }
+    function swipeMove(e) {
+      if (!isDragging) return;
+      let x = e.touches ? e.touches[0].clientX : e.clientX;
+      let diff = x - startX;
+      if (Math.abs(diff) > 50) {
+        if (diff < 0) nextSlide();
+        else prevSlide();
+        isDragging = false;
+        startAutoScroll();
+      }
+    }
+    function swipeEnd() {
+      isDragging = false;
+      document.removeEventListener('touchmove', swipeMove);
+      document.removeEventListener('mousemove', swipeMove);
+      document.removeEventListener('touchend', swipeEnd);
+      document.removeEventListener('mouseup', swipeEnd);
+      startAutoScroll();
+    }
+    window.addEventListener('load', () => {
+      updateSlides();
+      startAutoScroll();
+    });
+    window.addEventListener('resize', updateSlides);
+
+    // --- Календарь для выбора дат ---
+    function formatDate(date) {
+      return date.toISOString().slice(0,10).split('-').reverse().join('.');
+    }
+    function parseDate(str) {
+      const [d,m,y] = str.split('.').map(Number);
+      return new Date(y, m-1, d);
+    }
+    function addDays(date, days) {
+      const d = new Date(date);
+      d.setDate(d.getDate() + days);
+      return d;
+    }
+    // Пример резервов для автомобилей (можно заменить на загрузку с сервера)
+    const reservedDates = {
+      "Nissan Ariya серая": ["2025-05-08", "2025-05-09", "2025-05-10"],
+      "Nissan Ariya черная": ["2025-05-15"],
+      "Nissan Ariya синяя": []
+    };
+    function renderCalendar(container, selectedDate, onSelect, reservedArr) {
+      const now = new Date();
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      let html = `<div class="calendar-header">
+        <button type="button" class="prev">&#8592;</button>
+        <span>${firstDay.toLocaleString('ru', {month:'long'})} ${year}</span>
+        <button type="button" class="next">&#8594;</button>
+      </div>
+      <table><thead><tr>
+        <th>Пн</th><th>Вт</th><th>Ср</th><th>Чт</th><th>Пт</th><th>Сб</th><th>Вс</th>
+      </tr></thead><tbody>`;
+      let day = 1 - ((firstDay.getDay() + 6) % 7);
+      for (let w = 0; w < 6; w++) {
+        html += "<tr>";
+        for (let d = 0; d < 7; d++, day++) {
+          const date = new Date(year, month, day);
+          let classes = [];
+          let isToday = date.toDateString() === now.toDateString();
+          let isSelected = date.toDateString() === selectedDate.toDateString();
+          let isThisMonth = date.getMonth() === month;
+          let isReserved = reservedArr && reservedArr.includes(date.toISOString().slice(0,10));
+          if (!isThisMonth) html += `<td></td>`;
+          else
+            html += `<td class="${isToday?'today':''} ${isSelected?'selected':''} ${isReserved?'reserved':''}" data-date="${date.toISOString().slice(0,10)}">${date.getDate()}</td>`;
+        }
+        html += "</tr>";
+      }
+      html += "</tbody></table>";
+      container.innerHTML = html;
+      container.querySelector('.prev').onclick = () => renderCalendar(container, new Date(year, month-1, selectedDate.getDate()), onSelect, reservedArr);
+      container.querySelector('.next').onclick = () => renderCalendar(container, new Date(year, month+1, selectedDate.getDate()), onSelect, reservedArr);
+      Array.from(container.querySelectorAll('td[data-date]')).forEach(td => {
+        if (!td.classList.contains('reserved')) {
+          td.onclick = () => onSelect(td.getAttribute('data-date'));
+        }
+      });
+    }
+    // --- Работа с календарями ---
+    function setupCalendar(inputId, popupId, reservedArr, defaultDate) {
+      const input = document.getElementById(inputId);
+      const popup = document.getElementById(popupId);
+      let selectedDate = defaultDate;
+      function onSelect(dateStr) {
+        selectedDate = new Date(dateStr);
+        input.value = formatDate(selectedDate);
+        popup.style.display = "none";
+        calculateOrder();
+      }
+      input.value = formatDate(selectedDate);
+      input.addEventListener('focus', () => {
+        popup.style.display = "block";
+        renderCalendar(popup, selectedDate, onSelect, reservedArr);
+      });
+      input.addEventListener('click', () => {
+        popup.style.display = "block";
+        renderCalendar(popup, selectedDate, onSelect, reservedArr);
+      });
+      document.addEventListener('mousedown', function(e) {
+        if (!popup.contains(e.target) && e.target !== input) popup.style.display = "none";
+      });
+      return () => selectedDate;
+    }
+    // --- Логика заказа ---
+    const today = new Date();
+    let getStartDate = setupCalendar("dateStart", "calendarStart", reservedDates["Nissan Ariya серая"], today);
+    let getEndDate = setupCalendar("dateEnd", "calendarEnd", reservedDates["Nissan Ariya серая"], addDays(today,1));
+    document.getElementById('car').addEventListener('change', function() {
+      const car = this.value;
+      getStartDate = setupCalendar("dateStart", "calendarStart", reservedDates[car], parseDate(document.getElementById('dateStart').value));
+      getEndDate = setupCalendar("dateEnd", "calendarEnd", reservedDates[car], parseDate(document.getElementById('dateEnd').value));
+    });
+
+    // --- Проверка и расчет стоимости ---
+    function calculateOrder() {
+      const dateStart = parseDate(document.getElementById('dateStart').value);
+      const dateEnd = parseDate(document.getElementById('dateEnd').value);
+      let days = Math.round((dateEnd - dateStart) / (1000*60*60*24));
+      if (isNaN(days) || days < 1) days = 1;
+      let pricePerDay = 5500;
+      if (days >= 8 && days <= 21) pricePerDay = 5000;
+      if (days >= 22) pricePerDay = 4500;
+      let mileage = document.getElementById('mileage').value;
+      let extra = 0;
+      if (days <= 7) {
+        if (mileage === "400") extra = 500;
+        if (mileage === "600") extra = 1250;
+        if (mileage === "800") extra = 2500;
+        if (mileage === "unlim") extra = 3000;
+      } else {
+        if (mileage === "400") extra = days * 70;
+        if (mileage === "600") extra = days * 80;
+        if (mileage === "800") extra = days * 100;
+        if (mileage === "unlim") extra = days * 400;
+      }
+      const total = pricePerDay * days + extra;
+      document.getElementById('orderSummary').textContent = `Стоимость: ${total} руб.`;
+      return total;
+    }
+    Array.from(document.querySelectorAll('#orderForm input, #orderForm select')).forEach(el => {
+      el.addEventListener('change', calculateOrder);
+      el.addEventListener('input', calculateOrder);
+    });
+    // --- Проверка контакта и разблокировка кнопки ---
+    function validateContact() {
+      const type = document.getElementById('contactType').value;
+      const val = document.getElementById('contactValue').value.trim();
+      let valid = false;
+      if (type === 'phone' || type === 'whatsapp') {
+        valid = /^8-\d{3}-\d{3}-\d{2}-\d{2}$/.test(val);
+      } else if (type === 'telegram') {
+        valid = /^8-\d{3}-\d{3}-\d{2}-\d{2}$/.test(val) || /^@[\w\d_]{5,}$/.test(val);
+      }
+      const btn = document.getElementById('orderButton');
+      if (valid) btn.classList.add('active'), btn.disabled = false;
+      else btn.classList.remove('active'), btn.disabled = true;
+      return valid;
+    }
+    document.getElementById('contactValue').addEventListener('input', validateContact);
+    document.getElementById('contactType').addEventListener('change', validateContact);
+
+    // --- Отправка заказа в Telegram ---
+    document.getElementById('orderForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (!validateContact()) return;
+      const start = document.getElementById('dateStart').value;
+      const end = document.getElementById('dateEnd').value;
+      const car = document.getElementById('car').value;
+      const mileage = document.getElementById('mileage').options[document.getElementById('mileage').selectedIndex].text;
+      const driver = document.querySelector('input[name="driver"]:checked').value;
+      const contact = document.getElementById('contactValue').value;
+      const total = document.getElementById('orderSummary').textContent.replace('Стоимость: ','');
+      const message =
+        `Новая заявка EV Rent:\nДата с: ${start}\nПо: ${end}\nАвтомобиль: ${car}\nПробег: ${mileage}\nВодитель: ${driver}\nКонтакт: ${contact}\n${total}`;
+      // Для отправки в Telegram канал нужен бот-API, здесь только открытие ссылки для примера
+      window.open(`https://t.me/@EgorVL1?text=${encodeURIComponent(message)}`, '_blank');
+      alert('Заявка отправлена!');
+      this.reset();
+      calculateOrder();
+      validateContact();
+    });
+    // --- Установка штампов админом (пример, можно сделать выпадающим списком/кнопкой) ---
+    // Для демонстрации: кликом по штампу меняем статус
+    const stampTexts = [
+      {cls:'free', txt:'Свободно'},
+      {cls:'busy', txt:'Занято'},
+      {cls:'onway', txt:'В пути'}
+    ];
+    document.querySelectorAll('.stamp').forEach((stamp, idx) => {
+      stamp.addEventListener('click', function(e){
+        e.stopPropagation();
+        let cur = stampTexts.findIndex(s=>stamp.classList.contains(s.cls));
+        let next = (cur+1)%stampTexts.length;
+        stamp.className = 'stamp ' + stampTexts[next].cls;
+        stamp.textContent = stampTexts[next].txt;
+      });
+    });
+  </script>
+</body>
+</html>
